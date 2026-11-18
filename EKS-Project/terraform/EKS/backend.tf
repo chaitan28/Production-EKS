@@ -7,9 +7,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "backend-bucket-wiings"
+    bucket       = "backend-wings-solo"
     key          = "eks/terraform.tfstate"
-    region       = "ap-south-1"
+    region       = "ap-southeast-2"
     use_lockfile = true
     encrypt      = true
   }

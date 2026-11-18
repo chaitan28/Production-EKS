@@ -391,3 +391,36 @@ resource "aws_iam_role_policy_attachment" "aws_lb_controller_attach" {
   policy_arn = aws_iam_policy.aws_lb_controller_policy.arn
 }
 
+data "aws_iam_policy_document" "ebs_csi_irsa_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks-oidc.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks-oidc.url, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks-oidc.arn]
+    }
+  }
+}
+
+resource "aws_iam_role" "ebs_csi_irsa_role" {
+  name               = "AmazonEKS_EBS_CSI_DriverRole-${var.cluster_name}"
+  assume_role_policy = data.aws_iam_policy_document.ebs_csi_irsa_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_attach" {
+  role       = aws_iam_role.ebs_csi_irsa_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}

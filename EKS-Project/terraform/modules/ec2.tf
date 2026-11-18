@@ -59,8 +59,6 @@ resource "aws_instance" "public_ec2" {
 }
 
 
-
-
 resource "aws_security_group" "sg_public_ec2" {
   name        = "sg_public_ec2"
   description = "Allow SSH and HTTP inbound traffic"
